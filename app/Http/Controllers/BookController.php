@@ -9,10 +9,10 @@ class BookController extends Controller
 {
     public function index()
     {
-        // Ambil semua buku beserta relasi author-nya
         $books = Book::with('author')->get();
-
-        // Kirim data ke view books/index.blade.php
-        return view('books.index', compact('books'));
+        return response()->json([
+            'status' => 'success',
+            'data' => $books
+        ]);
     }
 }
