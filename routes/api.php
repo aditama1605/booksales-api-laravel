@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BookController;
@@ -30,3 +31,15 @@ Route::middleware(['auth:api', 'is_admin'])->group(function () {
     Route::apiResource('genres', GenreController::class)->except(['index', 'show']);
     Route::apiResource('books', BookController::class);
 });
+
+Route::middleware(['auth:api', 'is_admin'])->group(function () {
+    Route::delete('/transactions/{id}', [TransactionController::class, 'destroy']);
+    Route::get('/transactions', [TransactionController::class, 'index']);
+});
+
+Route::middleware(['auth:api', 'is_customer'])->group(function () {
+    Route::post('/transactions', [TransactionController::class, 'store']);
+    Route::get('/transactions/{id}', [TransactionController::class, 'show']);
+    Route::put('/transactions/{id}', [TransactionController::class, 'update']);
+});
+
