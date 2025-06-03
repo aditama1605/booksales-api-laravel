@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
-import { getGenres, createGenre } from "../../../services/genres";
-import { getAuthors, createAuthor } from "../../../services/authors";
+import { getGenres, createGenre, updateGenre, deleteGenre } from "../../../services/genres";
+import { getAuthors, createAuthor, updateAuthor, deleteAuthor } from "../../../services/authors";
 import { getBooks } from "../../../services/books";
 
 export default function AdminGenreAuthorBook() {
@@ -10,9 +10,11 @@ export default function AdminGenreAuthorBook() {
   const [authors, setAuthors] = useState([]);
 
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
+  const [editingGenre, setEditingGenre] = useState(null);
   const [newGenre, setNewGenre] = useState("");
 
   const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
+  const [editingAuthor, setEditingAuthor] = useState(null);
   const [newAuthor, setNewAuthor] = useState({ name: "", birth_date: "", bio: "" });
 
   useEffect(() => {
@@ -33,26 +35,68 @@ export default function AdminGenreAuthorBook() {
   const handleGenreSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createGenre({ name: newGenre });
+      if (editingGenre) {
+        await updateGenre(editingGenre.id, { name: newGenre });
+      } else {
+        await createGenre({ name: newGenre });
+      }
       setIsGenreModalOpen(false);
       setNewGenre("");
+      setEditingGenre(null);
       const genresData = await getGenres();
       setGenres(genresData);
     } catch (error) {
-      console.error("Error creating genre:", error);
+      console.error("Error saving genre:", error);
     }
   };
 
   const handleAuthorSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createAuthor(newAuthor);
+      if (editingAuthor) {
+        await updateAuthor(editingAuthor.id, newAuthor);
+      } else {
+        await createAuthor(newAuthor);
+      }
       setIsAuthorModalOpen(false);
       setNewAuthor({ name: "", birth_date: "", bio: "" });
+      setEditingAuthor(null);
       const authorsData = await getAuthors();
       setAuthors(authorsData);
     } catch (error) {
-      console.error("Error creating author:", error);
+      console.error("Error saving author:", error);
+    }
+  };
+
+  const handleEditGenre = (genre) => {
+    setEditingGenre(genre);
+    setNewGenre(genre.name);
+    setIsGenreModalOpen(true);
+  };
+
+  const handleDeleteGenre = async (id) => {
+    if (confirm("Are you sure you want to delete this genre?")) {
+      await deleteGenre(id);
+      const genresData = await getGenres();
+      setGenres(genresData);
+    }
+  };
+
+  const handleEditAuthor = (author) => {
+    setEditingAuthor(author);
+    setNewAuthor({
+      name: author.name,
+      birth_date: author.birth_date,
+      bio: author.bio,
+    });
+    setIsAuthorModalOpen(true);
+  };
+
+  const handleDeleteAuthor = async (id) => {
+    if (confirm("Are you sure you want to delete this author?")) {
+      await deleteAuthor(id);
+      const authorsData = await getAuthors();
+      setAuthors(authorsData);
     }
   };
 
@@ -92,7 +136,11 @@ export default function AdminGenreAuthorBook() {
           <div className="flex justify-between items-center p-4">
             <h2 className="text-2xl font-bold">Genres</h2>
             <button
-              onClick={() => setIsGenreModalOpen(true)}
+              onClick={() => {
+                setEditingGenre(null);
+                setNewGenre("");
+                setIsGenreModalOpen(true);
+              }}
               className="text-white bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm"
             >
               Add Genre
@@ -104,6 +152,7 @@ export default function AdminGenreAuthorBook() {
                 <tr>
                   <th className="px-4 py-3">ID</th>
                   <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -114,6 +163,20 @@ export default function AdminGenreAuthorBook() {
                   >
                     <td className="px-4 py-3">{genre.id}</td>
                     <td className="px-4 py-3">{genre.name}</td>
+                    <td className="px-4 py-3 space-x-2">
+                      <button
+                        onClick={() => handleEditGenre(genre)}
+                        className="text-blue-600"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteGenre(genre.id)}
+                        className="text-red-600"
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -128,7 +191,11 @@ export default function AdminGenreAuthorBook() {
           <div className="flex justify-between items-center p-4">
             <h2 className="text-2xl font-bold">Authors</h2>
             <button
-              onClick={() => setIsAuthorModalOpen(true)}
+              onClick={() => {
+                setEditingAuthor(null);
+                setNewAuthor({ name: "", birth_date: "", bio: "" });
+                setIsAuthorModalOpen(true);
+              }}
               className="text-white bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm"
             >
               Add Author
@@ -142,6 +209,7 @@ export default function AdminGenreAuthorBook() {
                   <th className="px-4 py-3">Name</th>
                   <th className="px-4 py-3">Birth Date</th>
                   <th className="px-4 py-3">Bio</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -154,6 +222,20 @@ export default function AdminGenreAuthorBook() {
                     <td className="px-4 py-3">{author.name}</td>
                     <td className="px-4 py-3">{author.birth_date}</td>
                     <td className="px-4 py-3">{author.bio}</td>
+                    <td className="px-4 py-3 space-x-2">
+                      <button
+                        onClick={() => handleEditAuthor(author)}
+                        className="text-blue-600"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAuthor(author.id)}
+                        className="text-red-600"
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -174,7 +256,7 @@ export default function AdminGenreAuthorBook() {
         />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white rounded-lg p-6 w-full max-w-sm">
-            <Dialog.Title className="text-lg font-medium mb-4">Add New Genre</Dialog.Title>
+            <Dialog.Title className="text-lg font-medium mb-4">{editingGenre ? "Edit Genre" : "Add Genre"}</Dialog.Title>
             <form onSubmit={handleGenreSubmit}>
               <input
                 type="text"
@@ -216,7 +298,7 @@ export default function AdminGenreAuthorBook() {
         />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white rounded-lg p-6 w-full max-w-sm">
-            <Dialog.Title className="text-lg font-medium mb-4">Add New Author</Dialog.Title>
+            <Dialog.Title className="text-lg font-medium mb-4">{editingAuthor ? "Edit Author" : "Add Author"}</Dialog.Title>
             <form onSubmit={handleAuthorSubmit}>
               <input
                 type="text"
