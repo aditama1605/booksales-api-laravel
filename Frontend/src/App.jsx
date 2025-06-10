@@ -8,6 +8,7 @@ import AdminLayout from "./layouts/admin";
 import Dashboard from "./pages/admin";
 import AdminBooks from "./pages/admin/books";
 import BookCreate from "./pages/admin/books/create"; // <-- Tambahkan ini
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -22,8 +23,6 @@ function App() {
             path="books"
             element={<Books />}
           />
-
-          {/* Auth */}
           <Route
             path="login"
             element={<Login />}
@@ -33,10 +32,14 @@ function App() {
             element={<Register />}
           />
 
-          {/* Admin */}
+          {/* Admin Route yang dilindungi */}
           <Route
             path="admin"
-            element={<AdminLayout />}
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
           >
             <Route
               index
