@@ -26,8 +26,10 @@
                 <li>
                     <a href="/admin/users" class="block text-gray-700 hover:bg-blue-50 px-3 py-2 rounded">Pengguna</a>
                 </li>
-                <li><a href="/admin/categories"
-                        class="block text-gray-700 hover:bg-blue-50 px-3 py-2 rounded">Kategori</a></li>
+                <li>
+                    <a href="/admin/categories"
+                        class="block text-gray-700 hover:bg-blue-50 px-3 py-2 rounded">Kategori</a>
+                </li>
                 <li>
                     <a href="/admin/orders"
                         class="block text-gray-700 hover:bg-blue-50 px-3 py-2 rounded font-bold">Transaksi</a>
@@ -59,6 +61,7 @@
                 .then(response => {
                     console.log(response); // Debug
 
+                    // Jika response langsung array
                     const transactions = response.data ?? response;
 
                     if (!Array.isArray(transactions)) {
@@ -70,10 +73,14 @@
                         const card = document.createElement("div");
                         card.className = "bg-white shadow rounded p-4";
 
+                        // Gunakan relasi book & customer jika ada
+                        const customerName = order.customer?.name ?? `ID: ${order.customer_id}`;
+                        const bookTitle = order.book?.title ?? `ID: ${order.book_id}`;
+
                         card.innerHTML = `
                             <h3 class="text-md font-bold mb-2">#${order.order_number}</h3>
-                            <p class="text-sm text-gray-600">Customer ID: ${order.customer_id}</p>
-                            <p class="text-sm text-gray-600">Book ID: ${order.book_id}</p>
+                            <p class="text-sm text-gray-600"><strong>Customer:</strong> ${customerName}</p>
+                            <p class="text-sm text-gray-600"><strong>Buku:</strong> ${bookTitle}</p>
                             <p class="text-blue-600 font-bold mt-2">Rp${Number(order.total_amount).toLocaleString("id-ID")}</p>
                         `;
                         grid.appendChild(card);

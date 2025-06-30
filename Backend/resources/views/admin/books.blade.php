@@ -46,8 +46,15 @@
             <input type="number" id="price" placeholder="Harga" class="border p-2 rounded" required>
             <input type="number" id="stock" placeholder="Stok" class="border p-2 rounded" required>
             <input type="text" id="cover_photo" placeholder="URL Cover" class="border p-2 rounded">
-            <input type="number" id="genre_id" placeholder="Genre ID" class="border p-2 rounded" required>
-            <input type="number" id="author_id" placeholder="Author ID" class="border p-2 rounded" required>
+
+            <select id="genre_id" class="border p-2 rounded" required>
+                <option value="">Pilih Genre</option>
+            </select>
+
+            <select id="author_id" class="border p-2 rounded" required>
+                <option value="">Pilih Author</option>
+            </select>
+
             <textarea id="description" placeholder="Deskripsi" class="border p-2 rounded md:col-span-2"></textarea>
             <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded md:col-span-2" id="submitBtn">Tambah
                 Buku</button>
@@ -59,6 +66,44 @@
 
     <script>
         const token = localStorage.getItem("token");
+        const genreSelect = document.getElementById("genre_id");
+        const authorSelect = document.getElementById("author_id");
+
+        function loadGenres() {
+            fetch("/api/genres", {
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    genreSelect.innerHTML = '<option value="">Pilih Genre</option>';
+                    data.forEach(genre => {
+                        const option = document.createElement("option");
+                        option.value = genre.id;
+                        option.textContent = genre.name;
+                        genreSelect.appendChild(option);
+                    });
+                });
+        }
+
+        function loadAuthors() {
+            fetch("/api/authors", {
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    authorSelect.innerHTML = '<option value="">Pilih Author</option>';
+                    data.forEach(author => {
+                        const option = document.createElement("option");
+                        option.value = author.id;
+                        option.textContent = author.name;
+                        authorSelect.appendChild(option);
+                    });
+                });
+        }
 
         function loadBooks() {
             const grid = document.getElementById("bookGrid");
@@ -76,13 +121,13 @@
                         const card = document.createElement("div");
                         card.className = "bg-white shadow rounded p-4 flex flex-col";
                         card.innerHTML = `
-                <img src="${book.cover_photo ?? '/assets/images/default-book.jpg'}" alt="${book.title}" class="w-full h-48 object-cover rounded mb-2">
-                <h3 class="text-md font-bold">${book.title}</h3>
-                <p class="text-sm text-gray-500">Rp${Number(book.price).toLocaleString("id-ID")}</p>
-                <p class="text-xs text-gray-500 mb-2">Stok: ${book.stock}</p>
-                <button onclick="editBook(${book.id})" class="bg-yellow-500 text-white px-2 py-1 text-xs rounded mb-1">Edit</button>
-                <button onclick="deleteBook(${book.id})" class="bg-red-500 text-white px-2 py-1 text-xs rounded">Hapus</button>
-            `;
+                        <img src="${book.cover_photo ?? '/assets/images/default-book.jpg'}" alt="${book.title}" class="w-full h-48 object-cover rounded mb-2">
+                        <h3 class="text-md font-bold">${book.title}</h3>
+                        <p class="text-sm text-gray-500">Rp${Number(book.price).toLocaleString("id-ID")}</p>
+                        <p class="text-xs text-gray-500 mb-2">Stok: ${book.stock}</p>
+                        <button onclick="editBook(${book.id})" class="bg-yellow-500 text-white px-2 py-1 text-xs rounded mb-1">Edit</button>
+                        <button onclick="deleteBook(${book.id})" class="bg-red-500 text-white px-2 py-1 text-xs rounded">Hapus</button>
+                    `;
                         grid.appendChild(card);
                     });
                 })
@@ -100,8 +145,8 @@
                 price: document.getElementById("price").value,
                 stock: document.getElementById("stock").value,
                 cover_photo: document.getElementById("cover_photo").value,
-                genre_id: document.getElementById("genre_id").value,
-                author_id: document.getElementById("author_id").value,
+                genre_id: genreSelect.value,
+                author_id: authorSelect.value,
                 description: document.getElementById("description").value,
             };
 
@@ -147,8 +192,8 @@
                     document.getElementById("price").value = book.price;
                     document.getElementById("stock").value = book.stock;
                     document.getElementById("cover_photo").value = book.cover_photo;
-                    document.getElementById("genre_id").value = book.genre_id;
-                    document.getElementById("author_id").value = book.author_id;
+                    genreSelect.value = book.genre_id;
+                    authorSelect.value = book.author_id;
                     document.getElementById("description").value = book.description;
                     document.getElementById("submitBtn").textContent = "Update Buku";
                     window.scrollTo({
@@ -177,6 +222,8 @@
                 });
         };
 
+        loadGenres();
+        loadAuthors();
         loadBooks();
     </script>
 </body>
